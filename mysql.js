@@ -10,14 +10,31 @@ const database = {
 
 const queries = {
   userAdd: (id, name, email, password) => {
-    return (`
+    return `
     INSERT INTO users VALUES('${id}','${name}','${email}','${password}');
     INSERT INTO profiles (user_id) VALUES('${id}');
-    `);
+    `;
   },
-  // INSERT INTO exercises (user_id) VALUES('${id}');
-  getProdileData: id => {
-    return `SELECT * FROM profiles WHERE user_id='${id}';`;
+  addExercises: (user_id, name, id) => {
+    return `
+    INSERT INTO exercises VALUES('${user_id}','${name}',0,'${id}');
+    `;
+  },
+  getProfileData: id => {
+    return `
+    SELECT * FROM profiles WHERE user_id='${id}';
+    SELECT * FROM exercises WHERE user_id='${id}';
+    `;
+  },
+  getExercisesData: id => {
+    return `
+    SELECT * FROM exercises WHERE user_id='${id}';
+    `;
+  },
+  updateExercisesCount: (id, count) => {
+    return `
+    UPDATE exercises SET count=${count} WHERE id='${id}';
+    `;
   },
 };
 

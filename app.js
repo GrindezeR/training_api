@@ -99,13 +99,89 @@ app.get('/api/profile', async (request, response) => {
   if (!user_id) return;
   const db = mysql.createConnection(database);
 
-  db.query(queries.getProdileData(user_id), (_, result) => {
-    console.log(result);
-    if (result[0]) {
-      response.status(200).send(result[0]);
-    } else {
-      response.status(404).send('USER NOT FOUND');
-    }
-    db.end();
+  db.connect(() => {
+    db.query(queries.getProfileData(user_id), (_, result) => {
+      console.log(result);
+      if (result[0]) {
+        response.status(200).send(result);
+      } else {
+        response.status(404).send({
+          status: 404,
+          message: 'USER NOT FOUND',
+        });
+      }
+      db.end();
+    });
+  });
+});
+
+app.get('/api/exercises', async (request, response) => {
+  const user_id = request.query.id;
+  if (!user_id) return;
+  const db = mysql.createConnection(database);
+
+  db.connect(() => {
+    db.query(queries.getExercisesData(user_id), (_, result) => {
+      console.log(result);
+      if (result[0]) {
+        response.status(200).send({ status: 200, result });
+      } else {
+        response.status(404).send({
+          status: 404,
+          message: 'EXERCISES NOT FOUND',
+        });
+      }
+      db.end();
+    });
+  });
+});
+
+app.post('/api/exercises', async (request, response) => {
+  const user_id = request.body.user_id;
+  const name = request.body.name;
+
+  if (!user_id && !name) return;
+  const db = mysql.createConnection(database);
+  const exercise = `SELECT * FROM exercises WHERE name='${name}';`;
+  db.connect(() => {
+    db.query(exercise, (_, result) => {
+      if (result[0]?.name) {
+        console.log('EXERCISES ALREADY EXIST');
+        response.status(400).send('You already have this exercises');
+        db.end();
+      } else {
+        db.query(
+          queries.addExercises(user_id, name, crypto.randomUUID()),
+          (_, result) => {
+            console.log(result);
+            if (result) {
+              response.status(200).send('SUCSESS');
+            } else {
+              response.status(500).send('ADD ERROR');
+            }
+            db.end();
+          }
+        );
+      }
+    });
+  });
+});
+
+app.put('/api/exercises', async (request, response) => {
+  const count = request.body.count;
+  const id = request.body.id;
+console.log('start:', {count,id})
+  const db = mysql.createConnection(database);
+  if (!count && !id) return;
+  db.connect(() => {
+    db.query(queries.updateExercisesCount(id, count), (_, result) => {
+      console.log(result);
+      if (result) {
+        response.status(200).send('SUCSESS');
+      } else {
+        response.status(500).send('UPDATE ERROR');
+      }
+      db.end();
+    });
   });
 });
